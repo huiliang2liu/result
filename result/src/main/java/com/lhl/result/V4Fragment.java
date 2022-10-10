@@ -1,8 +1,11 @@
 package com.lhl.result;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.net.Uri;
+import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -103,6 +106,7 @@ public class V4Fragment extends Fragment implements Result {
         Intent intent = ResultBack.screenshots(getActivity(), imageUri, saveUri, aspectX, aspectY, outputX, outputY);
         startActivityForResult(SCREENSHOT, intent, callback);
     }
+
     @Override
     public boolean checkWriteSettings() {
         return result.checkWriteSettings(getActivity());
@@ -145,5 +149,34 @@ public class V4Fragment extends Fragment implements Result {
                 }
             }
         });
+    }
+
+    @Override
+    public void startIntentSenderForResult(IntentSender intent, int requestCode, Intent fillInIntent, int flagsMask, int flagsValues, int extraFlags, ResultCallback... callbacks) throws IntentSender.SendIntentException {
+        startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, null, callbacks);
+    }
+
+    @Override
+    public void startIntentSenderForResult(IntentSender intent, int requestCode, Bundle options, ResultCallback... callbacks) throws IntentSender.SendIntentException {
+        startIntentSenderForResult(intent, requestCode, null, 0, 0, 0, options, callbacks);
+    }
+
+    @Override
+    public void startIntentSenderForResult(IntentSender intent, int requestCode, Intent fillInIntent, int flagsMask, int flagsValues, int extraFlags, Bundle options, ResultCallback... callbacks) throws IntentSender.SendIntentException {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.N) {
+            if (callbacks == null || callbacks.length <= 0)
+                return;
+            for (ResultCallback callback : callbacks)
+                callback.onActivityResult(requestCode, Activity.RESULT_CANCELED, null);
+            return;
+        }
+        result.registerActivityResult(requestCode, callbacks);
+        super.startIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options);
+
+    }
+
+    @Override
+    public void startIntentSenderForResult(IntentSender intent, int requestCode, ResultCallback... callbacks) throws IntentSender.SendIntentException {
+        startIntentSenderForResult(intent, requestCode, null, 0, 0, 0, null, callbacks);
     }
 }
